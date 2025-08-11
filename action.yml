@@ -1,0 +1,14 @@
+name: Builds an project using Shopware-CLI
+description: Build project using Shopware-CLI
+inputs:
+  path:
+    description: "Path to project"
+    required: true
+    default: "."
+  github-token:
+    description: "GitHub Token used to authenticate against a repository for Git context"
+    default: ${{ github.token }}
+    required: false
+runs:
+  using: "node20"
+  main: "dist/index.js"

@@ -1,0 +1,8 @@
+node_modules/
+*.log
+.DS_Store
+
+# Source files not needed when dist is built
+# Comment out if you want to commit source for transparency
+# index.js
+# package-lock.json
