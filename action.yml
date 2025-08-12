@@ -1,5 +1,9 @@
 name: Builds an project using Shopware-CLI
 description: Build project using Shopware-CLI
+author: shopware AG
+branding:
+  icon: box
+  color: blue
 inputs:
   path:
     description: "Path to project"
