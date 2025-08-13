@@ -1,6 +1,7 @@
 node_modules/
 *.log
 .DS_Store
+.env
 
 # Source files not needed when dist is built
 # Comment out if you want to commit source for transparency

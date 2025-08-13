@@ -9,10 +9,11 @@ inputs:
     description: "Path to project"
     required: true
     default: "."
-  github-token:
-    description: "GitHub Token used to authenticate against a repository for Git context"
-    default: ${{ github.token }}
+  additional-composer-cache-key:
+    description: "Additional suffix for composer cache key"
     required: false
+    default: ""
 runs:
   using: "node24"
-  main: "dist/index.js"
+  main: "dist/main/index.js"
+  post: "dist/post/index.js"
