@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { isFeatureAvailable, restoreCache } from "@actions/cache";
-import { debug, getInput, info, saveState, setFailed } from "@actions/core";
+import { getInput, info, saveState, setFailed, startGroup, endGroup } from "@actions/core";
 import { exec, getExecOutput } from "@actions/exec";
 import { STATE_KEYS } from "./shared";
 
@@ -25,6 +25,8 @@ async function run(): Promise<void> {
 		let composerCacheDir: string | undefined;
 		let cacheKey: string | undefined;
 
+		startGroup("📦 Composer Cache");
+
 		try {
 			const { stdout } = await getExecOutput(
 				"composer",
@@ -35,6 +37,7 @@ async function run(): Promise<void> {
 				},
 			);
 			composerCacheDir = stdout.trim();
+			info(`Cache directory: ${composerCacheDir}`);
 		} catch (_error) {
 			info("Could not determine composer cache directory, skipping cache");
 		}
@@ -50,7 +53,7 @@ async function run(): Promise<void> {
 				if (additionalCacheKey) {
 					cacheKey += `-${additionalCacheKey}`;
 				}
-				debug(`Using composer.lock for cache key: ${cacheKey}`);
+				info(`Using composer.lock for cache key: ${cacheKey}`);
 			} else if (existsSync(composerJsonPath)) {
 				const jsonContent = readFileSync(composerJsonPath, "utf8");
 				const hash = createHash("sha256").update(jsonContent).digest("hex");
@@ -58,7 +61,7 @@ async function run(): Promise<void> {
 				if (additionalCacheKey) {
 					cacheKey += `-${additionalCacheKey}`;
 				}
-				debug(`Using composer.json for cache key: ${cacheKey}`);
+				info(`Using composer.json for cache key: ${cacheKey}`);
 			}
 
 			if (cacheKey) {
@@ -67,21 +70,25 @@ async function run(): Promise<void> {
 						`composer-${process.platform}-`,
 					]);
 					if (cacheHit) {
-						debug(`Composer cache restored from key: ${cacheHit}`);
+						info(`✅ Cache restored from key: ${cacheHit}`);
 					} else {
-						debug("Composer cache not found");
+						info("⚠️ Cache not found, will be created after build");
 					}
 
 					// Save state for post-action with unique prefix
 					saveState(STATE_KEYS.COMPOSER_CACHE_DIR, composerCacheDir);
 					saveState(STATE_KEYS.CACHE_KEY, cacheKey);
 				} catch (error) {
-					debug(
-						`Failed to restore composer cache: ${(error as Error).message}`,
+					info(
+						`❌ Failed to restore composer cache: ${(error as Error).message}`,
 					);
 				}
 			}
+		} else if (!isFeatureAvailable()) {
+			info("⚠️ Cache service is not available");
 		}
+
+		endGroup();
 
 		const exitCode = await exec("shopware-cli", ["project", "ci", path], {
 			ignoreReturnCode: true,
